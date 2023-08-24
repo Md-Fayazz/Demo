@@ -6,4 +6,5 @@ echo "Job build successfully"
 echo "Job build successfully"
 echo "Job build successfully"
 echo "Job build successfully"
-jfhj
+echo "Job build successfully"
+echo "Job build successfully"
