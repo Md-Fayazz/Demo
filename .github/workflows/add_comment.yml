@@ -23,12 +23,14 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           node -e "const fs = require('fs');
-                    const fetch = require('node-fetch');  // Add this line
+                    const fetch = require('node-fetch');
                     const { Octokit } = require('@octokit/rest');
-                    const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN, request: { fetch }});  // Pass fetch implementation
+                    const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN, request: { fetch }});
 
                     const eventPayload = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
                     const comment = 'Thank you for your pull request!';
 
-                    const { owner, repo, number } = eventPayload.pull_request;
-                    octokit.issues.createComment({ owner, repo, issue_number: number, body: comment });"
+                    const owner = eventPayload.repository.owner.login;  // Owner login
+                    const repo = eventPayload.repository.name;  // Repository name
+                    const issue_number = eventPayload.number;  // Issue/PR number
+                    octokit.issues.createComment({ owner, repo, issue_number, body: comment });"
