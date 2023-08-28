@@ -10,14 +10,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Add Default Comment
-        uses: actions/github-script@v5
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
         with:
-          github-token: ${{ secrets.GH_TOKEN }}
-          script: |
-            const comment = 'Thank you for your pull request!';
+          node-version: '14'
+      - name: Install Dependencies
+        run: npm install @actions/github
 
-            const { owner, repo, number } = context.issue;
-            console.log(context); // Debugging line
-            await github.issues.createComment({ owner, repo, issue_number: number, body: comment });
+      - name: Add Default Comment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          const { Octokit } = require('@octokit/rest');
+          const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
+
+          const comment = 'Thank you for your pull request!';
+
+          const { owner, repo, number } = context.payload.pull_request;
+          octokit.issues.createComment({ owner, repo, issue_number: number, body: comment });
 
