@@ -18,5 +18,6 @@ jobs:
             const comment = 'Thank you for your pull request!';
 
             const { owner, repo, number } = context.issue;
+            console.log(context); // Debugging line
             await github.issues.createComment({ owner, repo, issue_number: number, body: comment });
 
