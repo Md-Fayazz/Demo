@@ -13,9 +13,10 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '14'
+          node-version: '16'  # Use Node.js 16
+
       - name: Install Dependencies
-        run: npm install @actions/github
+        run: npm install @actions/github @octokit/rest
 
       - name: Add Default Comment
         env:
@@ -28,4 +29,5 @@ jobs:
 
                     const { owner, repo, number } = JSON.parse(process.env.GITHUB_CONTEXT).payload.pull_request;
                     octokit.issues.createComment({ owner, repo, issue_number: number, body: comment });"
+
 
