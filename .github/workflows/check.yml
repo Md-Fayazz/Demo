@@ -1,0 +1,28 @@
+name: Jenkins Job Check
+
+on:
+  pull_request:
+    types:
+      - opened
+
+jobs:
+  check_jenkins_job:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check Jenkins Job Status
+        env:
+          JENKINS_URL: ${{ secrets.JENKINS_URL }}
+          JENKINS_USERNAME: ${{ secrets.JENKINS_USERNAME }}
+          JENKINS_API_TOKEN: ${{ secrets.JENKINS_API_TOKEN }}
+        run: |
+          # Get the job status using Jenkins API
+          job_name="your-job-name"
+          job_status=$(curl -s -u $JENKINS_USERNAME:$JENKINS_API_TOKEN "$JENKINS_URL/job/$job_name/lastBuild/api/json" | jq -r '.result')
+          
+          if [ "$job_status" = "SUCCESS" ]; then
+            echo "Jenkins job succeeded!"
+          else
+            echo "Jenkins job failed."
+            exit 1
+          fi
