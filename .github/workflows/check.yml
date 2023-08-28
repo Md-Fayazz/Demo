@@ -18,7 +18,7 @@ jobs:
         run: |
           
           job_name="jenkins_Pull_request _new"
-          job_status=$(curl -s -u $JENKINS_USERNAME:$JENKINS_API_TOKEN "$JENKINS_URL/job/$job_name/lastBuild/api/json" | jq -r '.result')
+          job_status=$(curl -s --user "$JENKINS_USERNAME:$JENKINS_API_TOKEN" "$JENKINS_URL/job/$job_name/lastBuild/api/json" | jq -r '.result')
           
           if [ "$job_status" = "SUCCESS" ]; then
             echo "Jenkins job succeeded!"
