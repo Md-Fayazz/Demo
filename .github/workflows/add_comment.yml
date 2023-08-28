@@ -21,11 +21,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
-          const { Octokit } = require('@octokit/rest');
-          const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
+          node -e "const { Octokit } = require('@octokit/rest');
+                    const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
 
-          const comment = 'Thank you for your pull request!';
+                    const comment = 'Thank you for your pull request!';
 
-          const { owner, repo, number } = context.payload.pull_request;
-          octokit.issues.createComment({ owner, repo, issue_number: number, body: comment });
+                    const { owner, repo, number } = JSON.parse(process.env.GITHUB_CONTEXT).payload.pull_request;
+                    octokit.issues.createComment({ owner, repo, issue_number: number, body: comment });"
 
