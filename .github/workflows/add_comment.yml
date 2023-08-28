@@ -1,0 +1,22 @@
+name: Add Default Comment to Pull Request
+
+on:
+  pull_request:
+    types:
+      - opened
+
+jobs:
+  add_comment:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Add Default Comment
+        uses: actions/github-script@v5
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const comment = 'Thank you for your pull request!';
+
+            const { owner, repo, number } = context.issue;
+            await github.issues.createComment({ owner, repo, issue_number: number, body: comment });
+
