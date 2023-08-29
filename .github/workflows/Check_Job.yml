@@ -1,4 +1,4 @@
-name: c
+name: Checking Jenkins Job Status
 
 on:
   pull_request:
