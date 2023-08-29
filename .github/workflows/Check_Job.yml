@@ -1,4 +1,4 @@
-name: Add Default Comment to Pull Request
+name: c
 
 on:
   pull_request:
