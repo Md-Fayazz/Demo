@@ -18,10 +18,6 @@ jobs:
         run: |
           job_name="jenkins_Pull_request _new"
           job_status=$(curl -s -u $JENKINS_USERNAME:$JENKINS_API_TOKEN "$JENKINS_URL/job/$job_name/lastBuild/api/json" | jq -r '.result')
-
-          # For example, using curl and parsing the JSON response
-          job_name="jenkins_Pull_request _new"
-          job_status=$(curl -s -u $JENKINS_USERNAME:$JENKINS_API_TOKEN "$JENKINS_URL/job/$job_name/lastBuild/api/json" | jq -r '.result')
           
           if [ "$job_status" = "SUCCESS" ]; then
             echo "Jenkins job succeeded!"
@@ -37,6 +33,27 @@ jobs:
         id: set_jenkins_status
         run: |
           status_msg="Jenkins Job Status: ${{ steps.check_jenkins_job.outputs.jenkins_status }}\nJenkins Job URL: [Jenkins Job URL](${{ steps.check_jenkins_job.outputs.jenkins_url }})"
-          curl -X POST -H "Authorization: Bearer $GITHUB_TOKEN" -d "{\"body\":\"$status_msg\"}" "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments"
+          echo "::set-output name=status_msg::$status_msg"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Comment on Pull Request
+        uses: actions/github-script@v5
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const statusMsg = process.env.status_msg;
+            const prNumber = context.payload.pull_request.number;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            const comment = `Jenkins Job Check:\n\n${statusMsg}`;
+
+            const response = await github.issues.createComment({
+              owner: owner,
+              repo: repo,
+              issue_number: prNumber,
+              body: comment
+            });
+
+            console.log(`Comment created: ${response.data.html_url}`);
