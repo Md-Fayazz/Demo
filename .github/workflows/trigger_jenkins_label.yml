@@ -30,29 +30,27 @@ jobs:
           # Trigger the Jenkins job with parameters using cURL
           curl -X POST -u $JENKINS_USERNAME:$JENKINS_TOKEN $JOB_URL
 
-      - name: Display Jenkins Job Information
-        id: display_job_info
+      - name: Set Check Run Description
+        id: set_check_description
         run: |
-          echo "::set-output name=job_info::Triggered Jenkins job: $JOB_NAME"
-        
+          echo "::set-output name=check_description::Triggered Jenkins job: [$JOB_NAME]($JOB_URL)"
+
       - name: Create GitHub Check Run
         id: create_check_run
         uses: actions/github-script@v5
         with:
-          github-token: ${{ secrets.GH_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const { createCheck } = require('github-checks');
-
-            const check = createCheck({
+            await github.checks.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
               name: 'Jenkins Job Triggered',
-              head_sha: '${{ github.sha }}',
+              head_sha: context.sha,
               status: 'completed',
               conclusion: 'success',
               output: {
                 title: 'Jenkins Job Information',
                 summary: 'The following Jenkins job was triggered:',
-                text: '${{ steps.display_job_info.outputs.job_info }}'
+                text: '${{ steps.set_check_description.outputs.check_description }}'
               }
             });
-
-            await check;
