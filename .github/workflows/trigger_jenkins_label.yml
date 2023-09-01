@@ -29,36 +29,16 @@ jobs:
 
           # Trigger the Jenkins job with parameters using cURL
           curl -X POST -u $JENKINS_USERNAME:$JENKINS_TOKEN $JOB_URL
+
       - name: Update GitHub Check Run
         id: update_check_run
-        uses: actions/github-script@v5
-        with:
-          github-token: ${{ secrets.GH_TOKEN }}
-          script: |
-            const github = require('@actions/github');
-            const context = github.context;
-            const { data: pr } = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.issue.number
-            });
-            const checkRuns = await github.rest.checks.listForRef({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: pr.head.sha
-            });
-            const checkRunToUpdate = checkRuns.data.find((check) => check.name === 'Jenkins Job Triggered');
-            if (checkRunToUpdate) {
-              await github.rest.checks.update({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                check_run_id: checkRunToUpdate.id,
-                status: 'completed',
-                conclusion: 'success',
-                output: {
-                  title: 'Jenkins Job Information',
-                  summary: 'The following Jenkins job was triggered:',
-                  text: `Jenkins job triggered: [Jenkins Job](${JOB_URL})`
-                }
-              });
-            } 
+        run: |
+          GITHUB_TOKEN=${{ secrets.GH_TOKEN }}
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          JOB_URL="${JENKINS_JOB_URL}/job/${JOB_NAME}/${PR_NUMBER}"
+
+          # Create JSON payload for updating the check run
+          PAYLOAD=$(jq -n --arg url "$JOB_URL" '{ "output": { "title": "Jenkins Job Information", "summary": "The following Jenkins job was triggered:", "text": "Jenkins job triggered: \($url)" } }')
+
+          # Update the existing GitHub check run using the GitHub API
+          curl -X PATCH -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" -d "$PAYLOAD" "https://api.github.com/repos/${{ github.repository }}/check-runs/${{ github.run_id }}"
