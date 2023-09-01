@@ -29,9 +29,4 @@ jobs:
 
           # Trigger the Jenkins job with parameters using cURL
           curl -X POST -u $JENKINS_USERNAME:$JENKINS_TOKEN $JOB_URL
-      - name: Open Jenkins Job Details
-        run: |
-          JENKINS_JOB_URL=${{ secrets.JENKINS_URL }}
-          JOB_NAME="Pull_and_merge"
-          JOB_DETAILS_URL="${JENKINS_URL}/job/${JOB_NAME}/lastBuild/console"
-          xdg-open $JOB_DETAILS_URL || open $JOB_DETAILS_URL || start $JOB_DETAILS_URL
+     
