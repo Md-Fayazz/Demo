@@ -35,17 +35,24 @@ jobs:
         run: |
           echo "::set-output name=job_info::Triggered Jenkins job: $JOB_NAME"
         
-      # The following step creates a GitHub check run with information about the Jenkins job.
       - name: Create GitHub Check Run
         id: create_check_run
-        uses: actions/create-check@v1
+        uses: actions/github-script@v5
         with:
-          name: Jenkins Job Triggered
-          conclusion: success
-          output: |
-            {
-              "title": "Jenkins Job Information",
-              "summary": "The following Jenkins job was triggered:",
-              "text": "${{ steps.display_job_info.outputs.job_info }}"
-            }
-     
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { createCheck } = require('github-checks');
+
+            const check = createCheck({
+              name: 'Jenkins Job Triggered',
+              head_sha: '${{ github.sha }}',
+              status: 'completed',
+              conclusion: 'success',
+              output: {
+                title: 'Jenkins Job Information',
+                summary: 'The following Jenkins job was triggered:',
+                text: '${{ steps.display_job_info.outputs.job_info }}'
+              }
+            });
+
+            await check;
