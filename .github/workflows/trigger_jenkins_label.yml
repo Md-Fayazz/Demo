@@ -15,11 +15,11 @@ jobs:
         run: echo ::set-output name=label::${{ github.event.label.name }}
 
       - name: Trigger Jenkins Job
-        if: steps.check_label.outputs.label == 'your_desired_label'
+        if: steps.check_label.outputs.label == Check
         run: |
-          # Replace with your Jenkins job URL and credentials if needed
-          JENKINS_JOB_URL="https://your-jenkins-server/job/your-job-name/build"
-          JENKINS_USERNAME="your-username"
-          JENKINS_TOKEN="your-token"
+    
+          JENKINS_JOB_URL=${{ secrets.JENKINS_URL }}
+          JENKINS_USERNAME=${{ secrets.JENKINS_USERNAME }}
+          JENKINS_TOKEN=${{ secrets.JENKINS_API_TOKEN }}
 
           curl -X POST -u $JENKINS_USERNAME:$JENKINS_TOKEN $JENKINS_JOB_URL
