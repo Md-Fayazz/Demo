@@ -33,14 +33,15 @@ jobs:
       - name: Set Check Run Description
         id: set_check_description
         run: |
+          JOB_URL="${JENKINS_JOB_URL}/job/${JOB_NAME}/${{ github.event.pull_request.number }}"
           CHECK_RUN_ID=$(curl -s -X POST \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Authorization: token ${{ secrets.GH_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
-            -d '{"name": "Jenkins Job Triggered", "head_sha": "${{ github.sha }}", "status": "completed", "conclusion": "success", "output": {"title": "Jenkins Job Information", "summary": "The following Jenkins job was triggered:", "text": "Jenkins job triggered: $JOB_NAME"}}' \
+            -d '{"name": "Jenkins Job Triggered", "head_sha": "${{ github.sha }}", "status": "completed", "conclusion": "success", "output": {"title": "Jenkins Job Information", "summary": "The following Jenkins job was triggered:", "text": "Jenkins job triggered: [$JOB_NAME]($JOB_URL)"}}' \
             "https://api.github.com/repos/${{ github.repository }}/check-runs" | jq -r '.id')
 
           echo "::set-output name=check_run_id::$CHECK_RUN_ID"
-        
+
       - name: Wait for Check Run
         run: |
           CHECK_RUN_ID=${{ steps.set_check_description.outputs.check_run_id }}
@@ -49,7 +50,7 @@ jobs:
           while [ "$status" = "in_progress" ]; do
             sleep 5
             status=$(curl -s -X GET \
-              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Authorization: token ${{ secrets.GH_TOKEN }}" \
               -H "Accept: application/vnd.github.v3+json" \
               "https://api.github.com/repos/${{ github.repository }}/check-runs/$CHECK_RUN_ID" | jq -r '.status')
           done
