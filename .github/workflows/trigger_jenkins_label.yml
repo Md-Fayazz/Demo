@@ -30,18 +30,20 @@ jobs:
           # Trigger the Jenkins job with parameters using cURL
           curl -X POST -u $JENKINS_USERNAME:$JENKINS_TOKEN $JOB_URL
 
-      - name: Update Check Run Description
-        id: update_check_description
-        run: |
-          JENKINS_JOB_URL=${{ secrets.JENKINS_URL }}
-          JOB_NAME="Pull_and_merge"
-          JOB_URL="${JENKINS_JOB_URL}/job/${JOB_NAME}/buildWithParameters?REPO_NAME=${{ github.repository }}&PR_NUMBER=${{ github.event.pull_request.number }}"
-          
-          # Update the check run description with a direct link to the Jenkins job URL
-          echo "Jenkins job URL: $JOB_URL" > check_description.txt
-          curl -X POST \
-            -H "Authorization: token ${{ secrets.GH_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            --data '{"body": "Details: ['"$JOB_NAME"']('"$JOB_URL"')"}' \
-            "https://api.github.com/repos/${{ github.repository }}/check-runs/${{ github.run_id }}/annotations"
+          # Update the check run description with the Jenkins job URL
+          GITHUB_TOKEN=${{ secrets.GH_TOKEN }}
+          RUN_ID=${{ github.run_id }}
+          REPO_OWNER=${{ github.repository_owner }}
+          REPO_NAME=${{ github.repository }}
+          JOB_DESCRIPTION="Jenkins job triggered: [$JOB_NAME]($JOB_URL)"
+
+          # Create a JSON payload with the new description
+          PAYLOAD=$(echo '{}' | jq --arg body "$JOB_DESCRIPTION" '.body = $body')
+
+          # Update the check run description using the GitHub API
+          curl -X PATCH \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.antiope-preview+json" \
+            -d "$PAYLOAD" \
+            "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/check-runs/$RUN_ID"
 
