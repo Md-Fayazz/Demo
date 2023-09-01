@@ -29,4 +29,23 @@ jobs:
 
           # Trigger the Jenkins job with parameters using cURL
           curl -X POST -u $JENKINS_USERNAME:$JENKINS_TOKEN $JOB_URL
+
+      - name: Display Jenkins Job Information
+        id: display_job_info
+        run: |
+          echo "::set-output name=job_info::Triggered Jenkins job: $JOB_NAME"
+        
+      # The following step creates a GitHub check run with information about the Jenkins job.
+      - name: Create GitHub Check Run
+        id: create_check_run
+        uses: actions/create-check@v1
+        with:
+          name: Jenkins Job Triggered
+          conclusion: success
+          output: |
+            {
+              "title": "Jenkins Job Information",
+              "summary": "The following Jenkins job was triggered:",
+              "text": "${{ steps.display_job_info.outputs.job_info }}"
+            }
      
