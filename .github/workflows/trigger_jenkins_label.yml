@@ -43,15 +43,15 @@ jobs:
           github-token: ${{ secrets.GH_TOKEN }}
           script: |
             const githubContext = require('@actions/github');
-            const context = githubContext.context;
+            const githubContextInstance = githubContext.context; // Rename context variable
             const { data: pr } = await githubContext.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.issue.number
+              owner: githubContextInstance.repo.owner,
+              repo: githubContextInstance.repo.repo,
+              pull_number: githubContextInstance.issue.number
             });
             const checkRun = {
-              owner: context.repo.owner,
-              repo: context.repo.repo,
+              owner: githubContextInstance.repo.owner,
+              repo: githubContextInstance.repo.repo,
               name: 'Jenkins Job Triggered',
               head_sha: pr.head.sha,
               status: 'completed',
