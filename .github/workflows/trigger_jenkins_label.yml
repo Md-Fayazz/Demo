@@ -41,7 +41,7 @@ jobs:
         id: create_check_run
         uses: actions/github-script@v5
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GH_TOKEN }}
           script: |
             const github = require('@actions/github');
             const context = github.context;
