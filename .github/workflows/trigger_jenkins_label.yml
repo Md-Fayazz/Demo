@@ -15,7 +15,7 @@ jobs:
         run: echo ::set-output name=label::${{ github.event.label.name }}
 
       - name: Trigger Jenkins Job
-        if: steps.check_label.outputs.label == Check
+        if: steps.check_label.outputs.label == 'Check'
         run: |
     
           JENKINS_JOB_URL=${{ secrets.JENKINS_URL }}
