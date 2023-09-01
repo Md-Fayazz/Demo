@@ -1,59 +1,31 @@
-name: Check Jenkins Job
+name: Trigger Jenkins Job on Label
 
 on:
   pull_request:
     types:
-      - opened
+      - labeled
 
 jobs:
-  check_jenkins_job:
+  trigger_jenkins:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check Jenkins Job Status
-        env:
-          JENKINS_URL: ${{ secrets.JENKINS_URL }}
-          JENKINS_USERNAME: ${{ secrets.JENKINS_USERNAME }}
-          JENKINS_API_TOKEN: ${{ secrets.JENKINS_API_TOKEN }}
+      - name: Check PR Label
+        id: check_label
+        run: echo ::set-output name=label::${{ github.event.label.name }}
+
+      - name: Trigger Jenkins Job
+        if: steps.check_label.outputs.label == 'Check'
         run: |
-          job_name="jenkins_Pull_request _new"
-          job_status=$(curl -s -u $JENKINS_USERNAME:$JENKINS_API_TOKEN "$JENKINS_URL/job/$job_name/lastBuild/api/json" | jq -r '.result')
-          
-          if [ "$job_status" = "SUCCESS" ]; then
-            echo "Jenkins job succeeded!"
-            echo "Jenkins Job URL: $JENKINS_URL/job/$job_name/${{ github.event.pull_request.number }}"
-            echo "::set-output name=jenkins_status::success"
-            echo "::set-output name=jenkins_url::$JENKINS_URL/job/$job_name/${{ github.event.pull_request.number }}"
-          else
-            echo "Jenkins job failed."
-            echo "::set-output name=jenkins_status::failure"
-          fi
-          
-      - name: Set Jenkins Status Check
-        id: set_jenkins_status
-        run: |
-          status_msg="Jenkins Job Status: ${{ steps.check_jenkins_job.outputs.jenkins_status }}\nJenkins Job URL: [Jenkins Job URL](${{ steps.check_jenkins_job.outputs.jenkins_url }})"
-          echo "::set-output name=status_msg::$status_msg"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JENKINS_JOB_URL=${{ secrets.JENKINS_URL }}
+          JENKINS_USERNAME=${{ secrets.JENKINS_USERNAME }}
+          JENKINS_TOKEN=${{ secrets.JENKINS_API_TOKEN }}
 
-      - name: Comment on Pull Request
-        uses: actions/github-script@v5
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const statusMsg = process.env.status_msg;
-            const prNumber = context.payload.pull_request.number;
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
+          # Replace 'your_job_name' with the name of your Jenkins job
+          JOB_NAME="Pull_and_merge"
 
-            const comment = `Jenkins Job Check:\n\n${statusMsg}`;
+          # Construct the Jenkins job URL with parameters
+          JOB_URL="${JENKINS_JOB_URL}/job/${JOB_NAME}/buildWithParameters?REPO_NAME=${{ github.repository }}&PR_NUMBER=${{ github.event.pull_request.number }}"
 
-            const response = await github.issues.createComment({
-              owner: owner,
-              repo: repo,
-              issue_number: prNumber,
-              body: comment
-            });
-
-            console.log(`Comment created: ${response.data.html_url}`);
+          # Trigger the Jenkins job with parameters using cURL
+          curl -X POST -u $JENKINS_USERNAME:$JENKINS_TOKEN $JOB_URL
