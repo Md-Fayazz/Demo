@@ -43,7 +43,7 @@ jobs:
         id: set_check_status
         if: steps.check_label.outputs.label == 'Check'
         run: |
-          GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN=${{ secrets.GH_TOKEN }}
           PR_NUMBER=${{ github.event.pull_request.number }}
           BUILD_RESULT=${{ steps.check_build_status.outputs.build_result }}
           if [[ "$BUILD_RESULT" == "success" ]]; then
