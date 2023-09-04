@@ -21,3 +21,7 @@ jobs:
           JENKINS_TOKEN=${{ secrets.JENKINS_API_TOKEN }}
           JOB_URL="http://51.20.12.98:8080/job/Pull_and_merge/buildWithParameters?REPO_NAME=${{ github.repository }}&PR_NUMBER=${{ github.event.pull_request.number }}"
           curl -X POST -u $JENKINS_USERNAME:$JENKINS_TOKEN $JOB_URL
+          BUILD_NUMBER=$(curl -X POST -u $JENKINS_USERNAME:$JENKINS_TOKEN http://51.20.12.98:8080/job/Pull_and_merge | jq -r '.number')
+          echo "The Jenkins build number is $BUILD_NUMBER"
+          echo "::set-output name=build_number::$BUILD_NUMBER"
+          
