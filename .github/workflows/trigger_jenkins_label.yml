@@ -25,19 +25,26 @@ jobs:
           echo "The Jenkins build number is $BUILD_NUMBER"
           echo "BUILD_NUMBER=${BUILD_NUMBER}" >> $GITHUB_ENV
 
-      - name: Check Jenkins Build Status
-        id: check_build_status
+      - name: Wait for Jenkins Build
+        id: wait_for_build
         run: |
           JENKINS_USERNAME=${{ secrets.JENKINS_USERNAME }}
           JENKINS_TOKEN=${{ secrets.JENKINS_API_TOKEN }}
-          BUILD_STATUS=$(curl -X GET -u $JENKINS_USERNAME:$JENKINS_TOKEN "http://16.170.212.178:8080/job/Pull_and_merge/$BUILD_NUMBER/api/json" | jq -r '.result')
-          echo "Jenkins Build Status: $BUILD_STATUS"
-          if [[ "$BUILD_STATUS" == "SUCCESS" ]]; then
-            echo "BUILD_RESULT=success" >> $GITHUB_ENV
-          else
-            echo "BUILD_RESULT=failure" >> $GITHUB_ENV
-            exit 1
-          fi
+          while :; do
+            BUILD_STATUS=$(curl -X GET -u $JENKINS_USERNAME:$JENKINS_TOKEN "http://16.170.212.178:8080/job/Pull_and_merge/$BUILD_NUMBER/api/json" | jq -r '.result')
+            if [[ "$BUILD_STATUS" == "SUCCESS" ]]; then
+              echo "Jenkins Build Status: $BUILD_STATUS"
+              echo "BUILD_RESULT=success" >> $GITHUB_ENV
+              break
+            elif [[ "$BUILD_STATUS" == "FAILURE" ]]; then
+              echo "Jenkins Build Status: $BUILD_STATUS"
+              echo "BUILD_RESULT=failure" >> $GITHUB_ENV
+              break
+            else
+              echo "Waiting for Jenkins build to complete..."
+              sleep 30  # Adjust the sleep interval as needed
+            fi
+          done
 
       - name: Set GitHub Check Status
         if: env.LABEL == 'Check'
