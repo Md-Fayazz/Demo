@@ -29,8 +29,8 @@ jobs:
           JENKINS_TOKEN=${{ secrets.JENKINS_API_TOKEN }}
           PR_NUMBER=${{ github.event.pull_request.number }}
           while :; do
-            # Use Jenkins API to find the build number for the matching PR number
-            BUILD_NUMBER=$(curl -s -X GET -u $JENKINS_USERNAME:$JENKINS_TOKEN "http://16.170.212.178:8080/job/Pull_and_merge/api/json" | jq -r ".lastBuild.number")
+            # Use Jenkins API to find the build associated with the PR number
+            BUILD_NUMBER=$(curl -s -X GET -u $JENKINS_USERNAME:$JENKINS_TOKEN "http://16.170.212.178:8080/job/Pull_and_merge/api/json" | jq -r ".builds[] | select(.actions[].parameters[].value == 'PR_NUMBER=$PR_NUMBER') | .number")
       
             if [[ -n "$BUILD_NUMBER" ]]; then
               echo "Found Jenkins Build Number: $BUILD_NUMBER"
@@ -38,7 +38,7 @@ jobs:
               break
             fi
       
-            echo "Waiting for Jenkins build to be triggered..."
+            echo "Waiting for Jenkins build associated with PR #$PR_NUMBER to be triggered..."
             sleep 30  # Adjust the sleep interval as needed
           done
 
