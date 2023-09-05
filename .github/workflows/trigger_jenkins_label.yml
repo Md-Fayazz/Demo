@@ -21,3 +21,9 @@ jobs:
           JENKINS_TOKEN=${{ secrets.JENKINS_API_TOKEN }}
           JOB_URL="http://16.170.212.178:8080/job/Pull_and_merge/buildWithParameters?REPO_NAME=${{ github.repository }}&PR_NUMBER=${{ github.event.pull_request.number }}"
           curl -X POST -u $JENKINS_USERNAME:$JENKINS_TOKEN $JOB_URL
+
+      - name: Open Jenkins Job Details
+        run: |
+          JOB_NAME="Pull_and_merge"
+          JOB_DETAILS_URL="http://16.170.212.178:8080/job/${JOB_NAME}/lastBuild/console"
+          xdg-open $JOB_DETAILS_URL || open $JOB_DETAILS_URL || start $JOB_DETAILS_URL
