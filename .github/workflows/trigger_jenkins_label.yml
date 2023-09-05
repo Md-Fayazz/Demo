@@ -41,6 +41,19 @@ jobs:
             echo "Waiting for Jenkins build associated with PR #$PR_NUMBER to be triggered..."
             sleep 30  # Adjust the sleep interval as needed
           done
+      - name: Check Jenkins Build Status
+        id: check_build_status
+        run: |
+          JENKINS_USERNAME=${{ secrets.JENKINS_USERNAME }}
+          JENKINS_TOKEN=${{ secrets.JENKINS_API_TOKEN }}
+          BUILD_STATUS=$(curl -X GET -u $JENKINS_USERNAME:$JENKINS_TOKEN "http://16.170.212.178:8080/job/Pull_and_merge/$BUILD_NUMBER/api/json" | jq -r '.result')
+          echo "Jenkins Build Status: $BUILD_STATUS"
+          if [[ "$BUILD_STATUS" == "SUCCESS" ]]; then
+            echo "::set-output name=build_result::success"
+          else
+            echo "::set-output name=build_result::failure"
+            exit 1  
+          fi
 
 
 
@@ -49,7 +62,7 @@ jobs:
         run: |
           GITHUB_TOKEN=${{ secrets.GH_TOKEN }}
           PR_NUMBER=${{ github.event.pull_request.number }}
-          BUILD_RESULT=${{ env.BUILD_RESULT }}
+          BUILD_RESULT=${{ env.BUILD_RESULT }}  # Removed the "env." prefix here
           if [[ "$BUILD_RESULT" == "success" ]]; then
             CHECK_STATUS="completed"
             CHECK_CONCLUSION="success"
@@ -70,3 +83,4 @@ jobs:
               \"conclusion\": \"$CHECK_CONCLUSION\"
             }" \
             "https://api.github.com/repos/${{ github.repository }}/check-runs"
+
