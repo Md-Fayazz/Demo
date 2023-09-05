@@ -46,7 +46,8 @@ jobs:
         run: |
           JENKINS_USERNAME=${{ secrets.JENKINS_USERNAME }}
           JENKINS_TOKEN=${{ secrets.JENKINS_API_TOKEN }}
-          BUILD_STATUS=$(curl -X GET -u $JENKINS_USERNAME:$JENKINS_TOKEN "http://16.170.212.178:8080/job/Pull_and_merge/$BUILD_NUMBER/api/json" | jq -r '.result')
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          BUILD_STATUS=$(curl -s -X GET -u $JENKINS_USERNAME:$JENKINS_TOKEN "http://16.170.212.178:8080/job/Pull_and_merge/$BUILD_NUMBER/api/json" | jq -r '.result // empty')
           echo "Jenkins Build Status: $BUILD_STATUS"
           if [[ "$BUILD_STATUS" == "SUCCESS" ]]; then
             echo "::set-output name=build_result::success"
@@ -54,6 +55,7 @@ jobs:
             echo "::set-output name=build_result::failure"
             exit 1  
           fi
+
 
 
 
