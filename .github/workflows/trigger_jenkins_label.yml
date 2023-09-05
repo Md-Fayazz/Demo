@@ -24,6 +24,5 @@ jobs:
 
       - name: Open Jenkins Job Details
         run: |
-          JOB_NAME="Pull_and_merge"
-          JOB_DETAILS_URL="http://16.170.212.178:8080/job/${JOB_NAME}/lastBuild/console"
+          JOB_DETAILS_URL="http://16.170.212.178:8080/job/Pull_and_merge/lastBuild/console"
           xdg-open $JOB_DETAILS_URL || open $JOB_DETAILS_URL || start $JOB_DETAILS_URL
