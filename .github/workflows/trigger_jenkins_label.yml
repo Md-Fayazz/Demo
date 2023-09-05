@@ -30,24 +30,18 @@ jobs:
           PR_NUMBER=${{ github.event.pull_request.number }}
           while :; do
             # Use Jenkins API to find the build number for the matching PR number
-            BUILD_NUMBER=$(curl -s -X GET -u $JENKINS_USERNAME:$JENKINS_TOKEN "http://16.170.212.178:8080/job/Pull_and_merge/api/json" | jq -r ".builds[] | select(.actions[].parameters | map(.value) | join(",") == 'PR_NUMBER=${PR_NUMBER}') | .number")
-            
+            BUILD_NUMBER=$(curl -s -X GET -u $JENKINS_USERNAME:$JENKINS_TOKEN "http://16.170.212.178:8080/job/Pull_and_merge/api/json" | jq -r ".lastBuild.number")
+      
             if [[ -n "$BUILD_NUMBER" ]]; then
-              BUILD_STATUS=$(curl -s -X GET -u $JENKINS_USERNAME:$JENKINS_TOKEN "http://16.170.212.178:8080/job/Pull_and_merge/$BUILD_NUMBER/api/json" | jq -r '.result')
-              if [[ "$BUILD_STATUS" == "SUCCESS" ]]; then
-                echo "Jenkins Build Status: $BUILD_STATUS"
-                echo "BUILD_RESULT=success" >> $GITHUB_ENV
-                break
-              elif [[ "$BUILD_STATUS" == "FAILURE" ]]; then
-                echo "Jenkins Build Status: $BUILD_STATUS"
-                echo "BUILD_RESULT=failure" >> $GITHUB_ENV
-                break
-              fi
+              echo "Found Jenkins Build Number: $BUILD_NUMBER"
+              echo "BUILD_NUMBER=$BUILD_NUMBER" >> $GITHUB_ENV
+              break
             fi
-            
-            echo "Waiting for Jenkins build to complete..."
+      
+            echo "Waiting for Jenkins build to be triggered..."
             sleep 30  # Adjust the sleep interval as needed
           done
+
 
 
       - name: Set GitHub Check Status
