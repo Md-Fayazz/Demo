@@ -1,0 +1,42 @@
+name: Merge Pull Request on Label and Checks
+
+on:
+  pull_request:
+    types:
+      - labeled
+      - synchronize
+
+jobs:
+  merge_pull_request:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check PR Label
+        id: check_label
+        run: echo ::set-output name=label::${{ github.event.label.name }}
+
+      - name: Check PR Status Checks
+        id: check_status_checks
+        run: |
+          CHECKS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/commits/${{ github.event.pull_request.head.sha }}/check-suites")
+          CHECK_COUNT=$(echo "$CHECKS" | jq -r '.total_count')
+          echo "Total Checks: $CHECK_COUNT"
+          if [[ $CHECK_COUNT -gt 0 ]]; then
+            CONCLUSION=$(echo "$CHECKS" | jq -r '.check_suites[0].conclusion')
+            echo "Conclusion: $CONCLUSION"
+            if [[ "$CONCLUSION" == "success" ]]; then
+              echo "::set-output name=checks_pass::true"
+            else
+              echo "::set-output name=checks_pass::false"
+            fi
+          else
+            echo "::set-output name=checks_pass::false"
+          fi
+
+      - name: Merge Pull Request
+        if: steps.check_label.outputs.label == 'Merge' && steps.check_status_checks.outputs.checks_pass == 'true'
+        run: |
+          GITHUB_TOKEN=${{ secrets.GH_TOKEN }}
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          echo "Merging Pull Request $PR_NUMBER..."
+          gh pr merge $PR_NUMBER --auto
