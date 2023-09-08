@@ -1,14 +1,8 @@
-branches:
-  - target: master
-    jobs:
-      - job:
-          url: http://13.48.136.179:8080/job/Pull_and_merge
-        triggers:
-          - pull_request:
-              labels:
-                - check
-          - pull_request:
-              require:
-                review: true
-              labels:
-                - merge
+jobs:
+  - targetBranch: main
+    jenkinsUrl: 'http://51.20.31.194:8080/job/ccif_build/'
+    triggers:
+      pull_request:
+        labels:
+          - check
+          - merge
