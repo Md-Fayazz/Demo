@@ -1,6 +1,6 @@
 jobs:
   - targetBranch: main
-    jenkinsUrl: 'http://51.20.31.194:8080/job/ccif_build/'
+    jenkinsUrl: 'http://51.20.31.194:8080/job/ccif_build_pipeline/'
     triggers:
       pull_request:
         labels:
