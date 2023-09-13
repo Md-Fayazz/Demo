@@ -1,42 +1,27 @@
-name: Merge Pull Request on Label and Checks
+name: Auto Merge on Label
 
 on:
   pull_request:
     types:
-      - labeled
+      - opened
       - synchronize
 
 jobs:
-  merge_pull_request:
+  auto_merge:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check PR Label
-        id: check_label
-        run: echo ::set-output name=label::${{ github.event.label.name }}
-
-      - name: Check PR Status Checks
-        id: check_status_checks
+      - name: Check if the pull request has the 'Merge' label
+        id: check-label
         run: |
-          CHECKS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/commits/${{ github.event.pull_request.head.sha }}/check-suites")
-          CHECK_COUNT=$(echo "$CHECKS" | jq -r '.total_count')
-          echo "Total Checks: $CHECK_COUNT"
-          if [[ $CHECK_COUNT -gt 0 ]]; then
-            CONCLUSION=$(echo "$CHECKS" | jq -r '.check_suites[0].conclusion')
-            echo "Conclusion: $CONCLUSION"
-            if [[ "$CONCLUSION" == "success" ]]; then
-              echo "::set-output name=checks_pass::true"
-            else
-              echo "::set-output name=checks_pass::false"
-            fi
-          else
-            echo "::set-output name=checks_pass::false"
-          fi
+          label=$(curl -s -H "Authorization: Bearer ${{ secrets.GH_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels")
+          echo "::set-output name=label::$(echo $label | jq -r '.[].name')"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Merge Pull Request
-        if: steps.check_label.outputs.label == 'Merge' && steps.check_status_checks.outputs.checks_pass == 'true'
+      - name: Auto-merge on 'Merge' label
+        if: steps.check-label.outputs.label == 'Merge'
         run: |
-          GITHUB_TOKEN=${{ secrets.GH_TOKEN }}
-          PR_NUMBER=${{ github.event.pull_request.number }}
-          echo "Merging Pull Request $PR_NUMBER..."
-          gh pr merge $PR_NUMBER --auto
+          curl -X PUT -H "Authorization: Bearer ${{ secrets.GH_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/merge"
