@@ -4,7 +4,7 @@ prOpened: 'Pull Request Opened! Executed from config.yml'
 jobs:
   - targetBranch: main
     job:
-      url: http://16.171.25.6:8080/job/ccif_build_pipeline/
+      url: 'http://16.171.25.6:8080/job/ccif_build_pipeline/'
     triggers:
       - pull_request:
           labels:
