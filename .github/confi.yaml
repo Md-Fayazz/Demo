@@ -7,5 +7,5 @@ jobs:
     triggers:
       pull_request:
         labels:
-          - check
-          - merge
+          - Check
+          - Merge
