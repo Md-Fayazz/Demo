@@ -3,5 +3,4 @@ check
 sdfg
 gfd
 demoo
-dsf
-czxc
+g
