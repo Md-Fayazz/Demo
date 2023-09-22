@@ -3,9 +3,7 @@ check
 sdfg
 gfd
 demoo
-g
-hmv
-fgbxn
+dvsz
 cad
 fdgsvc
 fa
