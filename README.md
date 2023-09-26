@@ -1,4 +1,2 @@
 Trigger-Event
-Check and Merge
-check
-check
+Check and Merge.
