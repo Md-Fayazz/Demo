@@ -3,7 +3,7 @@ prOpened: 'Pull Request Opened! Executed from config.yml'
 
 jobs:
   - targetBranch: main
-    jenkinsUrl: 'http://51.20.64.15:8080/job/ccif_build_pipeline/'
+    jenkinsUrl: 'http://16.171.208.166:8080/job/ccif_build_pipeline/'
     triggers:
       pull_request:
         labels:
