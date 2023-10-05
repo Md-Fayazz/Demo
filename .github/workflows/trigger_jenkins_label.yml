@@ -12,54 +12,14 @@ jobs:
     steps:
       - name: Check PR Label
         id: check_label
-        run: echo ::set-output name=label::${{ github.event.label.name }}
+        run: echo "LABEL=${{ github.event.label.name }}" >> $GITHUB_ENV
 
       - name: Trigger Jenkins Job
-        if: steps.check_label.outputs.label == 'Check'
+        if: env.LABEL == 'Check'
         run: |
-          JENKINS_JOB_URL=${{ secrets.JENKINS_URL }}
           JENKINS_USERNAME=${{ secrets.JENKINS_USERNAME }}
           JENKINS_TOKEN=${{ secrets.JENKINS_API_TOKEN }}
-
-          # Replace 'your_job_name' with the name of your Jenkins job
-          JOB_NAME="Pull_and_merge"
-
-          # Construct the Jenkins job URL with parameters
-          JOB_URL="${JENKINS_JOB_URL}/job/${JOB_NAME}/buildWithParameters?REPO_NAME=${{ github.repository }}&PR_NUMBER=${{ github.event.pull_request.number }}"
-
-          # Trigger the Jenkins job with parameters using cURL
+          JOB_URL="http://51.20.6.194:8080/job/Pull_and_merge/buildWithParameters?REPO_NAME=${{ github.repository }}&PR_NUMBER=${{ github.event.pull_request.number }}"
           curl -X POST -u $JENKINS_USERNAME:$JENKINS_TOKEN $JOB_URL
 
-      - name: Set Check Run Output
-        id: set_check_output
-        run: |
-          JOB_URL="${JENKINS_JOB_URL}/job/${JOB_NAME}/${{ github.event.pull_request.number }}"
-          echo "::set-output name=job_url::$JOB_URL"
-
-      - name: Create GitHub Check Run
-        id: create_check_run
-        uses: actions/github-script@v5
-        with:
-          github-token: ${{ secrets.GH_TOKEN }}
-          script: |
-            const githubContext = require('@actions/github');
-            const githubContextInstance = githubContext.context; // Rename context variable
-            const { data: pr } = await githubContext.rest.pulls.get({
-              owner: githubContextInstance.repo.owner,
-              repo: githubContextInstance.repo.repo,
-              pull_number: githubContextInstance.issue.number
-            });
-            const checkRun = {
-              owner: githubContextInstance.repo.owner,
-              repo: githubContextInstance.repo.repo,
-              name: 'Jenkins Job Triggered',
-              head_sha: pr.head.sha,
-              status: 'completed',
-              conclusion: 'success',
-              output: {
-                title: 'Jenkins Job Information',
-                summary: 'The following Jenkins job was triggered:',
-                text: `Jenkins job triggered: [$JOB_NAME](${{ steps.set_check_output.outputs.job_url }})`
-              }
-            };
-            await githubContext.rest.checks.create(checkRun);
+      
