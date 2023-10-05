@@ -1,0 +1,41 @@
+name: Auto Merge on 'Merge' Label
+
+on:
+  pull_request:
+    types:
+      - labeled
+      - synchronize
+
+jobs:
+  auto_merge:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check if the pull request has the 'Merge' label
+        id: check-label
+        run: |
+          label=$(curl -s -H "Authorization: Bearer ${{ secrets.GH_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels")
+          echo "::set-output name=label::$(echo $label | jq -r '.[].name')"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check if all checks have passed
+        id: checks-passed
+        run: |
+          checks=$(curl -s -H "Authorization: Bearer ${{ secrets.GH_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/check-suites")
+          echo "::set-output name=checks-passed::$(echo $checks | jq -r '.total_count == 0')"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Block merging if labels other than 'Merge' are applied or checks haven't passed
+        if: steps.check-label.outputs.label != 'Merge' || steps.checks-passed.outputs.checks-passed == 'false'
+        run: |
+          echo "Merging is blocked because labels other than 'Merge' are applied or checks haven't passed."
+
+      - name: Auto-merge on 'Merge' label and passed checks
+        if: steps.check-label.outputs.label == 'Merge' && steps.checks-passed.outputs.checks-passed == 'true'
+        run: |
+          curl -X PUT -H "Authorization: Bearer ${{ secrets.GH_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/merge"
