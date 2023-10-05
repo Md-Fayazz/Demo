@@ -1,0 +1,31 @@
+name: Trigger Jenkins Job on Label
+
+on:
+  pull_request:
+    types:
+      - labeled
+
+jobs:
+  trigger_jenkins:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check PR Label
+        id: check_label
+        run: echo ::set-output name=label::${{ github.event.label.name }}
+
+      - name: Trigger Jenkins Job
+        if: steps.check_label.outputs.label == 'Check'
+        run: |
+          JENKINS_JOB_URL=${{ secrets.JENKINS_URL }}
+          JENKINS_USERNAME=${{ secrets.JENKINS_USERNAME }}
+          JENKINS_TOKEN=${{ secrets.JENKINS_API_TOKEN }}
+
+          # Replace 'your_job_name' with the name of your Jenkins job
+          JOB_NAME="Pull_and_merge"
+
+          # Construct the Jenkins job URL with parameters
+          JOB_URL="${JENKINS_JOB_URL}/job/${JOB_NAME}/buildWithParameters?REPO_NAME=${{ github.repository }}&PR_NUMBER=${{ github.event.pull_request.number }}"
+
+          # Trigger the Jenkins job with parameters using cURL
+          curl -X POST -u $JENKINS_USERNAME:$JENKINS_TOKEN $JOB_URL
