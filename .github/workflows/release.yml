@@ -15,23 +15,13 @@ jobs:
         if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'release'
         run: echo "PR is merged into release branch"
 
-      - name: Get latest tag
-        if: steps.check_merged_into_release.outputs.result
-        id: get_latest_tag
-        run: |
-          echo "Running get latest tag step"
-          latest_tag=$(git describe --abbrev=0 --tags)
-          echo "Latest tag is: $latest_tag"
-          echo "::set-output name=tag::$latest_tag"
-
-      - name: Create GitHub Release
-        if: steps.check_merged_into_release.outputs.result
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Create Release
         id: create_release
         uses: actions/create-release@v1
-        with:
-          files: |
-            ./*  # Include all files in the release
-          name: Release ${{ steps.get_latest_tag.outputs.tag }}
-          tag_name: ${{ steps.get_latest_tag.outputs.tag }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
