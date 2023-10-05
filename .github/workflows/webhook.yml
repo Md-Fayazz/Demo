@@ -1,0 +1,33 @@
+name: Trigger Webhook on Label
+
+on:
+  pull_request:
+    types:
+      - labeled
+
+jobs:
+  trigger-webhook:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check for Label
+        run: |
+          label_name="Check"  # Replace with the label you want to trigger on
+
+          # Check if the label is present on the pull request
+          if [[ $(curl -s -H "Authorization: Bearer ${{ secrets.GH_TOKEN }}" \
+                   -H "Accept: application/vnd.github.v3+json" \
+                   https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/labels | jq -r ".[].name" | grep -q "$label_name") ]]; then
+            echo "The label $label_name is present. Proceeding with the webhook trigger."
+
+            # Define your webhook URL
+            WEBHOOK_URL="http://51.20.6.194:8080/ghprbhook/"
+
+            # Create a JSON payload if needed
+            JSON_PAYLOAD='{"key": "value"}'
+
+            # Use curl to send a POST request to the webhook
+            curl -X POST -H "Content-Type: application/json" -d "$JSON_PAYLOAD" "$WEBHOOK_URL"
+          else
+            echo "The label $label_name is not present. Skipping the webhook trigger."
+          fi
