@@ -12,12 +12,14 @@ jobs:
     steps:
       - name: Check PR Label
         id: check_label
-        run: echo ::set-output name=label::${{ github.event.label.name }}
+        run: echo "LABEL=${{ github.event.label.name }}" >> $GITHUB_ENV
 
       - name: Trigger Jenkins Job
-        if: steps.check_label.outputs.label == 'Check'
+        if: env.LABEL == 'Check'
         run: |
           JENKINS_USERNAME=${{ secrets.JENKINS_USERNAME }}
           JENKINS_TOKEN=${{ secrets.JENKINS_API_TOKEN }}
-          JOB_URL="http://16.170.212.178/:8080/job/Pull_and_merge/buildWithParameters?REPO_NAME=${{ github.repository }}&PR_NUMBER=${{ github.event.pull_request.number }}"
+          JOB_URL="http://51.20.6.194:8080/job/Pull_and_merge/buildWithParameters?REPO_NAME=${{ github.repository }}&PR_NUMBER=${{ github.event.pull_request.number }}"
           curl -X POST -u $JENKINS_USERNAME:$JENKINS_TOKEN $JOB_URL
+
+      
