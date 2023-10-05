@@ -17,11 +17,30 @@ jobs:
 
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Create Release
+
+      - name: Get the latest tag
+        id: get_latest_tag
+        run: |
+          echo "Running get latest tag step"
+          latest_tag=$(git describe --abbrev=0 --tags)
+          echo "Latest tag is: $latest_tag"
+          echo "::set-output name=tag::$latest_tag"
+
+      - name: Create Tag
+        id: create_tag
+        if: steps.check_merged_into_release.outputs.result
+        run: |
+          echo "Running create tag step"
+          git tag -a ${{ steps.get_latest_tag.outputs.tag }} -m "Tag for release ${{ steps.get_latest_tag.outputs.tag }}"
+          git push origin ${{ steps.get_latest_tag.outputs.tag }}
+
+      - name: Create GitHub Release
         id: create_release
+        if: steps.check_merged_into_release.outputs.result
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }} 
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          tag_name: ${{ steps.get_latest_tag.outputs.tag }}
+          release_name: Release ${{ steps.get_latest_tag.outputs.tag }}
+          body: Release notes go here  # Customize this as needed
