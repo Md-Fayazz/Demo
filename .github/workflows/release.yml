@@ -13,18 +13,18 @@ jobs:
       - name: Check if PR is merged into release branch
         id: check_merged_into_release
         if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'release'
-        run: echo "PR is merged into release branch"
+        run: echo "PR is merged into the release branch"
 
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Get the latest tag
+      - name: Get the latest tag using GitHub API
         id: get_latest_tag
+        if: steps.check_merged_into_release.outputs.result
         run: |
           echo "Running get latest tag step"
-          latest_tag=$(git describe --abbrev=0 --tags)
+          latest_tag=$(curl -s -H "Authorization: Bearer ${{ secrets.GH_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/git/refs/tags" | jq -r '.[0].ref')
+          latest_tag="${latest_tag#refs/tags/}"  # Remove "refs/tags/" prefix
           echo "Latest tag is: $latest_tag"
           echo "::set-output name=tag::$latest_tag"
+
 
       - name: Create Tag
         id: create_tag
