@@ -12,18 +12,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-
-      - name: Get the latest tag
-        id: get_latest_tag
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: |
-          echo "Running get latest tag step"
-          latest_tag=$(git describe --abbrev=0 --tags)
-          echo "Latest tag is: $latest_tag"
-          echo "::set-output name=tag::$latest_tag"
-
-
       - name: Create GitHub Release
         id: create_release
         uses: actions/create-release@v1
