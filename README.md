@@ -1,3 +1,0 @@
-Trigger-Event...
-zvcxv
-dsvz
