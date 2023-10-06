@@ -19,71 +19,7 @@ jobs:
         run: |
           JENKINS_USERNAME=${{ secrets.JENKINS_USERNAME }}
           JENKINS_TOKEN=${{ secrets.JENKINS_API_TOKEN }}
-          JOB_URL="http://16.170.212.178:8080/job/Pull_and_merge/buildWithParameters?REPO_NAME=${{ github.repository }}&PR_NUMBER=${{ github.event.pull_request.number }}"
+          JOB_URL="http://51.20.6.194:8080/job/Pull_and_merge/buildWithParameters?REPO_NAME=${{ github.repository }}&PR_NUMBER=${{ github.event.pull_request.number }}"
           curl -X POST -u $JENKINS_USERNAME:$JENKINS_TOKEN $JOB_URL
 
-      - name: Wait for Jenkins Build
-        id: wait_for_build
-        run: |
-          JENKINS_USERNAME=${{ secrets.JENKINS_USERNAME }}
-          JENKINS_TOKEN=${{ secrets.JENKINS_API_TOKEN }}
-          PR_NUMBER=${{ github.event.pull_request.number }}
-          while :; do
-            # Use Jenkins API to find the build associated with the PR number
-          BUILD_NUMBER=$(curl -s -X GET -u $JENKINS_USERNAME:$JENKINS_TOKEN "http://16.170.212.178:8080/job/Pull_and_merge/api/json" | jq -r '.builds[] | select(.actions[].parameters[].value | contains("PR_NUMBER='$PR_NUMBER'")) | .number')
       
-            if [[ -n "$BUILD_NUMBER" ]]; then
-              echo "Found Jenkins Build Number: $BUILD_NUMBER"
-              echo "BUILD_NUMBER=$BUILD_NUMBER" >> $GITHUB_ENV
-              break
-            fi
-      
-            echo "Waiting for Jenkins build associated with PR #$PR_NUMBER to be triggered..."
-            sleep 30  # Adjust the sleep interval as needed
-          done
-      - name: Check Jenkins Build Status
-        id: check_build_status
-        run: |
-          JENKINS_USERNAME=${{ secrets.JENKINS_USERNAME }}
-          JENKINS_TOKEN=${{ secrets.JENKINS_API_TOKEN }}
-          PR_NUMBER=${{ github.event.pull_request.number }}
-          BUILD_STATUS=$(curl -s -X GET -u $JENKINS_USERNAME:$JENKINS_TOKEN "http://16.170.212.178:8080/job/Pull_and_merge/$BUILD_NUMBER/api/json" | python3 -c "import sys, json; data = json.load(sys.stdin); print(data.get('result', ''))")
-          echo "Jenkins Build Status: $BUILD_STATUS"
-          if [[ "$BUILD_STATUS" == "SUCCESS" ]]; then
-            echo "::set-output name=build_result::success"
-          else
-            echo "::set-output name=build_result::failure"
-            exit 1  
-          fi
-
-
-
-
-
-      - name: Set GitHub Check Status
-        if: env.LABEL == 'Check'
-        run: |
-          GITHUB_TOKEN=${{ secrets.GH_TOKEN }}
-          PR_NUMBER=${{ github.event.pull_request.number }}
-          BUILD_RESULT=${{ env.BUILD_RESULT }}  # Removed the "env." prefix here
-          if [[ "$BUILD_RESULT" == "success" ]]; then
-            CHECK_STATUS="completed"
-            CHECK_CONCLUSION="success"
-            CHECK_SUMMARY="Jenkins build succeeded"
-          else
-            CHECK_STATUS="completed"
-            CHECK_CONCLUSION="failure"
-            CHECK_SUMMARY="Jenkins build failed"
-          fi
-          curl -X POST \
-            -H "Authorization: token $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github.antiope-preview+json" \
-            -d "{
-              \"state\": \"$CHECK_STATUS\",
-              \"context\": \"Jenkins Build\",
-              \"description\": \"$CHECK_SUMMARY\",
-              \"target_url\": \"$JOB_URL\",
-              \"conclusion\": \"$CHECK_CONCLUSION\"
-            }" \
-            "https://api.github.com/repos/${{ github.repository }}/check-runs"
-
