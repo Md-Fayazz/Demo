@@ -19,7 +19,7 @@ jobs:
           echo "Running get latest tag step"
           latest_tag=$(curl -s https://api.github.com/repos/${{ github.repository }}/tags | jq -r '.[0].name')
           echo "Latest tag is: $latest_tag"
-          echo "::set-output name=tag::$latest_tag"
+          ::set-output name=tag::$latest_tag
 
       - name: Create GitHub Release
         id: create_release
