@@ -1,0 +1,36 @@
+name: Create GitHub Release on Merge
+
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  create_release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check if PR is merged into release branch
+        id: check_merged_into_release
+        if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'release'
+        run: echo "PR is merged into release branch"
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Get the latest tag
+        id: get_latest_tag
+        run: |
+          echo "Running get latest tag step"
+          latest_tag=$(curl -s https://api.github.com/repos/${{ github.repository }}/tags | jq -r '.[0].name')
+          echo "Latest tag is: $latest_tag"
+          echo "::set-output name=tag::$latest_tag"
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        with:
+          tag_name: ${{ steps.get_latest_tag.outputs.tag }}
+          release_name: Release ${{ steps.get_latest_tag.outputs.tag }}
+          body: Release notes go here  # Customize this as needed  
