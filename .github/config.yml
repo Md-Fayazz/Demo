@@ -3,16 +3,16 @@ prOpened: 'Pull Request Opened! Executed from config.yml'
 
 jobs:
   - targetBranch: main
-    jenkinsUrl: 'https://a177-223-233-84-210.ngrok-free.app/job/Development/job/check/'
+    jenkinsUrl: 'https://a177-223-233-84-210.ngrok-free.app/job/AD.steering.control.main.build/'
     triggers:
       pull_request:
         labels:
           - Check
           - Merge
   - targetBranch: release
-    jenkinsUrl: 'https://a177-223-233-84-210.ngrok-free.app/job/Development/job/check/'
+    jenkinsUrl: 'https://a177-223-233-84-210.ngrok-free.app/job/AD.steering.control.main.release/'
     triggers:
       pull_request:
         labels:
           - Check
-          - Merge 
+          - Merge
