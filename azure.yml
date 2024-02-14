@@ -1,0 +1,79 @@
+parameters:
+  - name: PR_Number
+    type: string
+    default: ''
+  - name: GITHUB_REPO_OWNER
+    type: string
+    default: ''
+  - name: GITHUB_REPO_NAME
+    type: string
+    default: ''
+  - name: Label
+    type: string
+    default: ''
+  - name: SHA
+    type: string
+    default: ''
+  - name: pr_sourcebranch
+    type: string
+    default: ''
+
+      
+pr:
+  branches:
+    include:
+      - '*'
+  paths:
+    include:
+      - '*'
+  condition: contains(variables['System.PullRequest.Labels'], 'Check') || contains(variables['System.PullRequest.Labels'], 'Merge')
+
+pool:
+  name: Azure  
+
+stages:
+- stage: Sync
+  jobs:
+  - job: SyncJob
+    steps:
+    - script: |
+        echo "Syncing Repo"
+        git checkout $(Build.SourceBranchName)
+        git submodule update --init --recursive
+      displayName: 'Sync Repository'
+
+- stage: Build
+  jobs:
+  - job: BuildJob
+    steps:
+    - script: |
+        echo "Build"
+        .env/Build_jenkins_global.bat
+      displayName: 'Build'
+    - publish: $(Build.SourcesDirectory)/.build  
+      artifact: MyArtifacts
+        
+- stage: NVMCheck
+  jobs:
+  - job: NVMCheckJob
+    steps:
+    - script: |
+        echo "Checking NV Memory"
+      displayName: 'Check NV Memory'
+
+- stage: Archive
+  jobs:
+  - job: ArchiveJob
+    steps:
+    - script: |
+        echo "Archive Artifacts"
+      displayName: 'Archive Artifacts'
+
+- stage: ArtifactoryUpload
+  jobs:
+  - job: ArtifactoryUploadJob
+    steps:
+    - script: |
+        echo "Artifactory upload"
+      displayName: 'Artifactory Upload'
+      

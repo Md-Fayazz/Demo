@@ -1,0 +1,17 @@
+{
+    "sample_hw_number": "5QS907530  ",
+    "vw_spare_part_number_high": "5QS907530C ",
+    "vw_spare_part_number_low": "5QS907530C ",
+    "vw_software_version_number_dev": "MAIN",
+    "vw_software_version_number_prod": "MAIN",
+    "odx_file_identifier_app": "EV_GatewMQBwBL",
+    "odx_file_version_app": "001018",
+    "system_name_or_engine_type_high": "GW MQB 23    ",
+    "system_name_or_engine_type_low": "GW MQB 23    ",
+    "fds_key": "2315",
+    "rfs_ver": "0100",
+    "hsm_odis_ver": "1832",
+    "hsm_long_ver": "1.18.32",
+    "marvel_odis_ver": "1210",
+    "marvel_long_ver": "1.2.10"
+}

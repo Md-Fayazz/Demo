@@ -1,0 +1,3 @@
+
+set(CMAKE_C_COMPILER    ${CONAN_BIN_DIRS_GCC}/gcc.exe)
+set(CMAKE_CXX_COMPILER  ${CONAN_BIN_DIRS_GCC}/g++.exe)

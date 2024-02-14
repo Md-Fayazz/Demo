@@ -1,0 +1,118 @@
+pipeline {
+	agent none
+	parameters {
+        string(name: 'PR_Number', defaultValue: '', description: 'Pull Request Number')
+        string(name: 'GITHUB_REPO_OWNER', defaultValue: '', description: 'GitHub Repository Owner')
+        string(name: 'GITHUB_REPO_NAME', defaultValue: '', description: 'GitHub Repository Name')
+        string(name: 'Label', defaultValue: '', description: 'Label Name')
+        string(name: 'SHA', defaultValue: '', description: 'SHA of the commit')
+	      choice(name: 'BUILD_STATUS', choices: ['success', 'failure'], description: 'Build Status')
+    }
+    stages {
+        stage('sync') {
+            steps {
+        	    script {
+                        def prNumber = env.PR_NUMBER
+                        def label = env.LABEL
+                        def prUrl = "https://github.com/Hussain-ADevOps/AD-Steering-Control/pull/${prNumber}"
+                        def description = """
+                        <b>PR Number:</b> <a href='${prUrl}'>#${prNumber}</a><br>
+                        <b>Label:</b> ${label}<br>
+                        """
+                        currentBuild.setDescription(description)
+                }
+		    // git branch: 'main', credentialsId: 'Github_credentials_hussain', url: 'git@github.com:Hussain-ADevOps/AD-Steering-Control.git'
+		    //
+            }
+        }
+    
+        stage('build') {
+            steps {
+        		echo "Build"
+        		// bat "mkdir build"
+        		bat "./Env/ConanEnvironment.bat"
+        		// dir("./build"){
+        		    
+        		// 	// bat "conan --version"
+        		// 	// bat "conan install --profile default .."   
+        		// 	// bat "activate.bat"
+        		// 	// bat "cmake .. -G \"MinGW Makefiles\""
+        		// 	// bat "cmake --build . --target all"
+        		// }
+                
+            }
+        }
+	stage('parallel') {
+            steps {
+                echo "Checking NV Memory "
+            }
+        }
+	stage('BuildVerificationTest') {
+            steps {
+                echo "Testing...."
+            }
+        }
+	stage('GTest') {
+            steps {
+                echo "Testing"
+            }
+        }
+	stage('BuildingImage') {
+            steps {
+                echo "Building Image"
+            }
+        }
+  stage('Release') {
+            steps {
+                echo "Releasing the SW"
+            }
+        }
+    }   
+    post {
+        success {
+            script {
+                def url = 'https://183f-2401-4900-1c42-8fff-00-18a-4d33.ngrok-free.app/jenkins/status'
+                def payload = [
+                    job_name: env.JOB_NAME,
+                    build_status: 'success', // Always set to 'success' for success post
+                    PR_Number: params.PR_Number,
+                    Label: params.Label,
+                    SHA: params.SHA,
+                    jenkins_url: env.JENKINS_URL,
+                    GITHUB_REPO_OWNER: params.GITHUB_REPO_OWNER,
+                    GITHUB_REPO_NAME: params.GITHUB_REPO_NAME
+                ]
+                def response = httpRequest(
+                    contentType: 'APPLICATION_JSON',
+                    httpMode: 'POST',
+                    requestBody: groovy.json.JsonOutput.toJson(payload),
+                    url: url
+                )
+                echo "Response from API: ${response}"
+            }
+        }
+        
+        failure {
+            script {
+                def url = 'https://183f-2401-4900-1c42-8fff-00-18a-4d33.ngrok-free.app/jenkins/status'
+                def payload = [
+                    job_name: env.JOB_NAME,
+                    build_status: 'failure', // Always set to 'failure' for failure post
+                    PR_Number: params.PR_Number,
+                    Label: params.Label,
+                    SHA: params.SHA,
+                    jenkins_url: env.JENKINS_URL,
+                    GITHUB_REPO_OWNER: params.GITHUB_REPO_OWNER,
+                    GITHUB_REPO_NAME: params.GITHUB_REPO_NAME
+                ]
+                def response = httpRequest(
+                    contentType: 'APPLICATION_JSON',
+                    httpMode: 'POST',
+                    requestBody: groovy.json.JsonOutput.toJson(payload),
+                    url: url
+                )
+                echo "Response from API: ${response}"
+            }
+        }
+    }    
+}
