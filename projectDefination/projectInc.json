@@ -1,0 +1,10 @@
+{   
+    // put all .cmake files located inside cmake/project 
+    "projectDefinationFiles" : [
+        "build.cmake",
+        "odx_aio.cmake",
+        "Testing.cmake",
+        "projectConf.cmake",
+        "identification.cmake"
+    ]
+}

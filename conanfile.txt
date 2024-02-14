@@ -1,0 +1,9 @@
+[requires]
+gcc/13.1.0_test@demo/testing
+python/3.10.0_temp@demo/testing
+vscode/1.85.1@demo/testing
+cmake/3.26.5@demo/testing
+
+[generators]
+virtualenv
+cmake
